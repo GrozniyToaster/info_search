@@ -1,11 +1,13 @@
 import asyncio
 from aiolimiter import AsyncLimiter
 from time import time
-from httpx import AsyncClient
+from httpx import AsyncClient, Timeout
 from itertools import chain, islice
 from bs4 import BeautifulSoup
 from collections import deque
 from typing import Iterable, TypeVar
+from loguru import logger
+
 
 T = TypeVar('T')
 
@@ -40,6 +42,7 @@ def get_allhref_from_html(source: str) -> set[str]:
 
 async def scrape(url, session, throttler):
     async with throttler:
+        logger.debug('scrapy {}', url)
         return await session.get(url)
 
 URL = 'http://neolurk.org'
@@ -51,26 +54,29 @@ def filter_urls(urls: set[str], visited: set[str]) -> set[str]:
     return {
         f'{URL}{url}'
         for url in urls
-        if url.startswith('/wiki/') and  and url not in visited
+        if url.startswith('/wiki/') and not url.startswith('/w/') and url not in visited
     }
 
 async def run():
     _start = time()
     visited = {f'{URL}/{MAIN_PAGE}'}
     throttler = AsyncLimiter(max_rate=10, time_period=1)   # 10 tasks/second
-    url_to_process = {f'{URL}/{MAIN_PAGE}'}
+    url_to_process = ChankedQueue()
+    url_to_process.append((f'{URL}/{MAIN_PAGE}',))
     i = 1
-    async with AsyncClient() as session:
+    async with AsyncClient(timeout=Timeout(10, connect=60)) as session:
         while len(visited) < 50:
-            tasks = [scrape(url, session=session, throttler=throttler) for url in islice(url_to_process, 50 - len(visited))]
+            url_chunk = url_to_process.popleft()
+            tasks = [scrape(url, session=session, throttler=throttler) for url in url_chunk]
             results = await asyncio.gather(*tasks)
-            visited |= url_to_process
+            visited.update(url_chunk)
             url_in_results = set(chain.from_iterable(get_allhref_from_html(result.text) for result in results))
-            url_to_process = filter_urls(url_in_results, visited)
+            url_to_process.extend(filter_urls(url_in_results, visited))
+
             for res in results:
                 if not res.text:
                     continue
-
+                logger.info(f'{res.http_version}')
                 with open(f'./out/{i}', 'w') as f:
                     f.write(res.text)
                 i += 1
