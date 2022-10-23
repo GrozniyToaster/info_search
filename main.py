@@ -1,7 +1,7 @@
 import asyncio
 from aiolimiter import AsyncLimiter
 from time import time
-from httpx import AsyncClient, Timeout
+from httpx import AsyncClient, Timeout, codes, Response
 from itertools import chain, islice
 from bs4 import BeautifulSoup
 from collections import deque
@@ -36,14 +36,33 @@ class ChankedQueue(deque[tuple[T, ...]]):
             start, stop = stop, stop + self.chunk_size
 
 
-def get_allhref_from_html(source: str) -> set[str]:
+def get_all_url_from_html(source: str) -> set[str]:
     soup = BeautifulSoup(source)
     return {a['href'] for a in soup.find_all('a', href=True)}
 
-async def scrape(url, session, throttler):
+async def make_request(url: str, session: AsyncClient, throttler: AsyncLimiter) -> Response:
     async with throttler:
         logger.debug('scrapy {}', url)
         return await session.get(url)
+
+
+async def srape(url: str, session: AsyncClient, throttler: AsyncLimiter) -> Response | None:
+    response = await make_request(url, session, throttler)
+
+    if response.status_code == codes.OK:
+        return response
+
+    if response.status_code == codes.TOO_MANY_REQUESTS or response.status_code == codes.SERVICE_UNAVAILABLE:
+        logger.warning('retry later by {} on url {}', response.status_code, url)
+        await asyncio.sleep(1.5)
+        response = await make_request(url, session, throttler)
+
+    if response.status_code != codes.OK:
+        logger.error('cannot scrape {} code {}', url, response.status_code)
+        return None
+
+    return response
+
 
 URL = 'http://neolurk.org'
 MAIN_PAGE = '/wiki/%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F_%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B'
@@ -67,10 +86,16 @@ async def run():
     async with AsyncClient(timeout=Timeout(10, connect=60)) as session:
         while len(visited) < 50:
             url_chunk = url_to_process.popleft()
-            tasks = [scrape(url, session=session, throttler=throttler) for url in url_chunk]
+            tasks = [srape(url, session=session, throttler=throttler) for url in url_chunk]
             results = await asyncio.gather(*tasks)
             visited.update(url_chunk)
-            url_in_results = set(chain.from_iterable(get_allhref_from_html(result.text) for result in results))
+            url_in_results = set(
+                chain.from_iterable(
+                    get_all_url_from_html(result.text)
+                    for result in results
+                    if result
+                )
+            )
             url_to_process.extend(filter_urls(url_in_results, visited))
 
             for res in results:
