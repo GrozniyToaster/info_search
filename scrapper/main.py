@@ -1,47 +1,55 @@
 import asyncio
 from itertools import chain
 
-from aiolimiter import AsyncLimiter
 from httpx import AsyncClient, Timeout
 from loguru import logger
 
 from documents import upload_documents
 from scrapy import ChankedQueue, get_all_url_from_html, scrape
-
-URL = 'http://neolurk.org'
-MAIN_PAGE = '/wiki/Заглавная_страница'
+from config import Config
 
 
-def filter_urls(urls: set[str], visited: set[str]) -> set[str]:
+def get_new_urls(paths: set[str], visited: set[str]) -> set[str]:
     return {
-        f'{URL}{url}'
-        for url in urls
-        if url.startswith('/wiki/') and not url.startswith('/w/') and url not in visited
+        f'{Config.url}{path}'
+        for path in paths
+        if path.startswith('/wiki/') and path not in visited
     }
 
 
-async def run():
-    visited = {f'{URL}{MAIN_PAGE}'}
-    throttler = AsyncLimiter(max_rate=10, time_period=1)  # 10 tasks/second
-    url_to_process = ChankedQueue()
-    url_to_process.append((f'{URL}/{MAIN_PAGE}',))
-    i = 1
-    async with AsyncClient(timeout=Timeout(10, connect=60)) as session:
-        while len(visited) < 50:
-            url_chunk = url_to_process.popleft()
-            tasks = [scrape(url, session=session, throttler=throttler) for url in url_chunk]
-            results = await asyncio.gather(*tasks)
-            visited.update(url_chunk)
-            url_in_results = set(
-                chain.from_iterable(
-                    get_all_url_from_html(result.text)
-                    for result in results
-                    if result
-                )
-            )
-            url_to_process.extend(filter_urls(url_in_results, visited))
+async def empty_coroutine() -> None:
+    return
 
-            await upload_documents(results)
+
+async def run():
+    visited_paths = {f'{Config.url}{Config.start_path}'}
+    urls_to_process = ChankedQueue()
+    urls_to_process.append((f'{Config.url}{Config.start_path}',))
+
+    upload_documents_task = empty_coroutine()
+
+    session = AsyncClient(timeout=Timeout(100, connect=60))
+
+    while len(visited_paths) < Config.count_documents:
+
+        url_chunk = urls_to_process.popleft()
+        scrape_tasks = [scrape(url, session=session, throttler=Config.throttler) for url in url_chunk]
+        _, *results = await asyncio.gather(upload_documents_task, *scrape_tasks)
+
+        visited_paths.update(url_chunk)
+        paths_in_results = set(
+            chain.from_iterable(
+                get_all_url_from_html(result.text)
+                for result in results
+                if result
+            )
+        )
+        urls_to_process.extend(get_new_urls(paths_in_results, visited_paths))
+
+        upload_documents_task = upload_documents(results)
+
+    await upload_documents_task
+    await session.aclose()
 
     logger.debug("finished scraping")
 
