@@ -58,8 +58,14 @@ async def scrape(url: str, session: AsyncClient, throttler: AsyncLimiter) -> Res
         await asyncio.sleep(1.5)
         response = await make_request(url, session, throttler)
 
+    if codes.is_redirect(response.status_code):
+        logger.warning('redirect on {} {}', url, response.status_code)
+        response = await make_request(response.headers['Location'], session, throttler)
+
     if response.status_code != codes.OK:
         logger.error('cannot scrape {} code {}', url, response.status_code)
         return None
+
+
 
     return response

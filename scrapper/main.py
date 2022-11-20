@@ -6,7 +6,7 @@ from aiolimiter import AsyncLimiter
 from httpx import AsyncClient, Timeout
 from loguru import logger
 
-from .scrapy import ChankedQueue, get_all_url_from_html, scrape
+from scrapy import ChankedQueue, get_all_url_from_html, scrape
 
 URL = 'http://neolurk.org'
 MAIN_PAGE = '/wiki/Заглавная_страница'
