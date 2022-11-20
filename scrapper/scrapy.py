@@ -1,7 +1,7 @@
 import asyncio
 from collections import deque
 from itertools import chain, islice
-from typing import TypeVar, Iterable
+from typing import Iterable, TypeVar
 
 from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup

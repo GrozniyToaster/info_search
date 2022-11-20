@@ -1,7 +1,6 @@
-from httpx import Response
 from bs4 import BeautifulSoup
+from httpx import Response
 from loguru import logger
-
 from motor.motor_asyncio import AsyncIOMotorClient
 
 client = AsyncIOMotorClient()
