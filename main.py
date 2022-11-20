@@ -1,13 +1,13 @@
 import asyncio
-from aiolimiter import AsyncLimiter
-from time import time
-from httpx import AsyncClient, Timeout, codes, Response
-from itertools import chain, islice
-from bs4 import BeautifulSoup
 from collections import deque
+from itertools import chain, islice
+from time import time
 from typing import Iterable, TypeVar
-from loguru import logger
 
+from aiolimiter import AsyncLimiter
+from bs4 import BeautifulSoup
+from httpx import AsyncClient, Response, Timeout, codes
+from loguru import logger
 
 T = TypeVar('T')
 
@@ -37,7 +37,7 @@ class ChankedQueue(deque[tuple[T, ...]]):
 
 
 def get_all_url_from_html(source: str) -> set[str]:
-    soup = BeautifulSoup(source)
+    soup = BeautifulSoup(source, features="html.parser")
     return {a['href'] for a in soup.find_all('a', href=True)}
 
 async def make_request(url: str, session: AsyncClient, throttler: AsyncLimiter) -> Response:

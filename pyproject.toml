@@ -11,11 +11,13 @@ httpx = {version = "^0.23.0"}
 aiolimiter = "^1.0.0"
 beautifulsoup4 = "^4.11.1"
 loguru = "^0.6.0"
+motor = "^3.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.982"
 ipython = "^8.5.0"
+isort = "^5.10.1"
 
 [build-system]
 requires = ["poetry-core"]
