@@ -23,7 +23,7 @@ def filter_urls(urls: set[str], visited: set[str]) -> set[str]:
 
 async def run():
     _start = time()
-    visited = {f'{URL}/{MAIN_PAGE}'}
+    visited = {f'{URL}{MAIN_PAGE}'}
     throttler = AsyncLimiter(max_rate=10, time_period=1)   # 10 tasks/second
     url_to_process = ChankedQueue()
     url_to_process.append((f'{URL}/{MAIN_PAGE}',))
