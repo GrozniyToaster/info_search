@@ -7,6 +7,7 @@ from httpx import AsyncClient, Timeout
 from loguru import logger
 
 from scrapy import ChankedQueue, get_all_url_from_html, scrape
+from documents import upload_documents
 
 URL = 'http://neolurk.org'
 MAIN_PAGE = '/wiki/Заглавная_страница'
@@ -42,13 +43,15 @@ async def run():
             )
             url_to_process.extend(filter_urls(url_in_results, visited))
 
-            for res in results:
-                if not res.text:
-                    continue
-                logger.info(f'{res.http_version}')
-                with open(f'./out/{i}', 'w') as f:
-                    f.write(res.text)
-                i += 1
+            await upload_documents(results)
+
+            # for res in results:
+            #     if not res.text:
+            #         continue
+            #     logger.info(f'{res.http_version}')
+            #     with open(f'./out/{i}', 'w') as f:
+            #         f.write(res.text)
+            #     i += 1
 
 
 
