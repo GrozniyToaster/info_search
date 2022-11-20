@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample Form</title>
+</head>
+<body>
+<form method="post">
+    <input type="text" name="statement"/>
+    <input type="submit" value="Искать!">
+</form>
+
+
+    {% for item in results %}
+<p> <a href="{{item}}"> {{ item  }} </a> </p>
+    {% else %}
+<p> Нет документов </p>
+    {% endfor %}
+
+
+</body>
+</html>
