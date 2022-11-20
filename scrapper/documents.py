@@ -1,5 +1,5 @@
 from httpx import Response
-
+from bs4 import BeautifulSoup
 from loguru import logger
 
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -16,7 +16,7 @@ async def upload_documents(responses: list[Response | None]) -> None:
             {
                 'path': response.url.path,
                 'raw_html': response.text,
-                # 'text': 'text'
+                'text':  BeautifulSoup(response.text).get_text()
             }
             for response in responses if response
         ]
