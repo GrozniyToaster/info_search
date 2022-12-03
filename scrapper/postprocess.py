@@ -1,11 +1,10 @@
 import asyncio
 import asyncstdlib
 from loguru import logger
-from mongodb_connector import mongo_client
+from helpers.mongodb_connector import mongo_client
 
 
 async def build_bigram_words_dictionary():
-    cursor = mongo_client.test.word_bigrams.find()
     total_documents = await mongo_client.test.word_bigrams.count_documents({})
     percentage = 0
     async for i, word_with_bigrams in asyncstdlib.enumerate(mongo_client.test.word_bigrams.find()):

@@ -14,6 +14,7 @@ uvicorn = "^0.20.0"
 loguru = "^0.6.0"
 python-multipart = "^0.0.5"
 pymystem3 = "^0.2.0"
+helpers = {path = "../helpers", develop = true}
 
 
 [tool.poetry.group.dev.dependencies]

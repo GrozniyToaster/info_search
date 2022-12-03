@@ -1,14 +1,14 @@
 import asyncio
 
-from itertools import islice
 from bs4 import BeautifulSoup
 from httpx import Response
 from loguru import logger
-from pymystem3 import Mystem
 
-from mongodb_connector import mongo_client
+from helpers.mongodb_connector import mongo_client
 
-system = Mystem()
+from helpers.mystem import system
+from helpers.stemmer import stemmer
+
 part_of_speech = {
     'A',  # прилагательное
     'ADV',  # наречие
@@ -30,13 +30,13 @@ part_of_speech = {
 
 def get_bigrams_of_word(word: str) -> list[str]:
     return [
-        first_letter + second_letter
-        for first_letter, second_letter in zip(word, islice(word, 1, None))
+        word[i: i + 2]
+        for i in range(len(word) - 1)
     ]
 
 
 def get_standard_symbol(symbol: dict) -> dict:
-    symbol['text'] = symbol['text'].lower()
+    symbol['text'] = stemmer.stem(symbol['text'])
     return symbol
 
 
