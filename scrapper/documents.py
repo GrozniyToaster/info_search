@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from httpx import Response
 from loguru import logger
 
+from helpers.bigrams import get_bigrams_of_word
 from helpers.mongodb_connector import mongo_client
 
 from helpers.mystem import system
@@ -26,13 +27,6 @@ part_of_speech = {
     # 'PART'	    # частица
     # 'PR'	    # предлог
 }
-
-
-def get_bigrams_of_word(word: str) -> list[str]:
-    return [
-        word[i: i + 2]
-        for i in range(len(word) - 1)
-    ]
 
 
 def get_standard_symbol(symbol: dict) -> dict:
