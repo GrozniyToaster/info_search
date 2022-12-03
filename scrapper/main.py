@@ -7,7 +7,7 @@ from loguru import logger
 from documents import upload_documents
 from scrapy import ChankedQueue, get_all_url_from_html, scrape
 from config import Config
-
+from postprocess import build_bigram_words_dictionary
 
 def get_new_urls(paths: set[str], visited: set[str]) -> set[str]:
     return {
@@ -50,8 +50,14 @@ async def run():
 
     await upload_documents_task
     await session.aclose()
+    logger.debug('finished downloading, start build dictionary and bigrams')
+
+    await build_bigram_words_dictionary()
+
 
     logger.debug("finished scraping")
+
+
 
 
 if __name__ == "__main__":

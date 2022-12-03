@@ -4,8 +4,9 @@ from itertools import islice
 from bs4 import BeautifulSoup
 from httpx import Response
 from loguru import logger
-from motor.motor_asyncio import AsyncIOMotorClient
 from pymystem3 import Mystem
+
+from mongodb_connector import mongo_client
 
 system = Mystem()
 part_of_speech = {
@@ -63,9 +64,6 @@ def is_significant_token(token: dict) -> bool:
             return False
 
 
-client = AsyncIOMotorClient()
-
-
 async def upload_documents(responses: list[Response | None]) -> None:
     if not responses:
         return
@@ -85,7 +83,7 @@ async def upload_documents(responses: list[Response | None]) -> None:
         )
 
     inset_bigrams_tasks = (
-        client.test.word_bigrams.find_one_and_update(
+        mongo_client.test.word_bigrams.find_one_and_update(
             {'word': word},
             {'$set': {
                 'word': word,
@@ -96,7 +94,7 @@ async def upload_documents(responses: list[Response | None]) -> None:
         for word in words
     )
 
-    upload_documents_task = client.test.docs.insert_many(
+    upload_documents_task = mongo_client.test.docs.insert_many(
         [
             {
                 'path': response.url.path,
