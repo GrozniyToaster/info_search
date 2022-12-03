@@ -4,6 +4,7 @@ from config import Config
 
 from loguru import logger
 
+
 class Dimension:
 
     def __init__(self, word: str) -> None:
@@ -16,8 +17,7 @@ class Dimension:
         return len(words_bigrams & candidates_bigrams) / len(words_bigrams | candidates_bigrams)
 
 
-
-def get_fuzzy_word(word: str) -> str:
+async def get_fuzzy_word(word: str) -> str:
     bigrams = get_bigrams_of_word(word)
     word_dimension = Dimension(word)
     async for bigram_with_words in mongo_client.test.bigram_words.find({'bigram': {'$in': bigrams}}):
@@ -25,3 +25,9 @@ def get_fuzzy_word(word: str) -> str:
         for candidate in bigram_with_words['words']:
             if word_dimension.distance_to(candidate) >= Config.minimum_distance_for_fuzzy_words:
                 return candidate
+
+
+async def is_dictionary_word(word: str) -> bool:
+    return bool(
+        await mongo_client.test.word_bigrams.count_documents({'word': word})
+    )
