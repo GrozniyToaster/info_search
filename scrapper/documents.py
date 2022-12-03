@@ -94,16 +94,7 @@ async def upload_documents(responses: list[Response | None]) -> None:
         for word in words
     )
 
-    upload_documents_task = mongo_client.test.docs.insert_many(
-        [
-            {
-                'path': response.url.path,
-                'raw_html': response.text,
-                'lemmas': get_clear_lemmas(BeautifulSoup(response.text).get_text())
-            }
-            for response in responses if response
-        ]
-    )
+    upload_documents_task = mongo_client.test.docs.insert_many(documents)
 
     documents, *_ = await asyncio.gather(upload_documents_task, *inset_bigrams_tasks)
 
