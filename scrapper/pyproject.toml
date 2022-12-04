@@ -17,6 +17,7 @@ pymystem3 = "^0.2.0"
 asyncstdlib = "^3.10.5"
 nltk = "^3.7"
 helpers = {path = "../helpers", develop = true}
+frozendict = "^2.3.4"
 
 
 [tool.poetry.group.dev.dependencies]

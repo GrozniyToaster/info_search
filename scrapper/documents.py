@@ -10,6 +10,8 @@ from helpers.mongodb_connector import mongo_client
 from helpers.mystem import system
 from helpers.stemmer import stemmer
 
+from frozendict import frozendict
+
 part_of_speech = {
     'A',  # прилагательное
     'ADV',  # наречие
@@ -21,7 +23,7 @@ part_of_speech = {
     'V',  # глагол
     'SPRO',  # местоимение-существительное
 
-    # 'APRO'	    # местоимение-прилагательное
+    'APRO',	    # местоимение-прилагательное
     # 'CONJ'	    # союз
     # 'INTJ'	    # междометие
     # 'PART'	    # частица
@@ -31,7 +33,8 @@ part_of_speech = {
 
 def get_standard_symbol(symbol: dict) -> dict:
     symbol['text'] = stemmer.stem(symbol['text'])
-    return symbol
+    symbol['analysis'] = tuple(map(frozendict, symbol['analysis']))
+    return frozendict(symbol)
 
 
 def get_clear_lemmas(text: str) -> list[dict]:

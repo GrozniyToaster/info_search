@@ -5,7 +5,7 @@ from helpers.stemmer import stemmer
 
 from typing import NamedTuple
 
-from fuzzy import is_dictionary_word, get_fuzzy_word
+from fuzzy import is_dictionary_word, get_fuzzy_words
 
 
 def get_lexemes(text: str) -> list[str]:
@@ -25,10 +25,10 @@ async def process_lexeme(lexeme: str) -> tuple[str, str]:
     if await is_dictionary_word(lexeme):
         return lexeme, lexeme
     else:
-        return lexeme, await get_fuzzy_word(lexeme)
+        return lexeme, await get_fuzzy_words(lexeme) or lexeme
 
 
-def get_enrich_query(text: str) -> EnrichQuery:
+async def get_enrich_query(text: str) -> EnrichQuery:
     lexemes = get_lexemes(text)
     query: list[str] = []
     fuzzy_mapping: dict[str, str] = {}
