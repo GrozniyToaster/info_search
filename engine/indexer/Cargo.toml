@@ -1,0 +1,18 @@
+[package]
+name = "indexer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+bincode = "1.3.3"
+futures = "0.3.25"
+mongodb = {version = "2.3.1", features = ["tokio-runtime"] }
+num-integer = "0.1.45"
+serde = {version = "1.0.149", features = ["derive"]}
+sort = "0.8.5"
+tokio = "1.23.0"
+utf8-read = "0.4.0"
+index_api = {path = "../index_api"}
