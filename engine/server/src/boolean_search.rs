@@ -29,7 +29,6 @@ pub fn boolean_search(
             None => continue,
         }
     }
-    println!("{docs_containing_words:?} {request:?}");
     let mut result = Vec::new();
 
     'main_loop: loop {

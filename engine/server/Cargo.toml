@@ -12,3 +12,5 @@ index_api = {path = "../index_api"}
 actix-web = "4"
 serde_json = "1.0.91"
 lazy_static = "1.4.0"
+itertools = "0.10.5"
+mongodb = "2.3.1"

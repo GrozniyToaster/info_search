@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-
+use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
-use mongodb::bson::{doc};
-
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Page {
@@ -19,8 +17,6 @@ use index_api::reversed_index::*;
 struct Lemma {
     text: String,
 }
-
-
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,13 +35,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     build_forward_index(&mut cursor).await;
 
-    let mut fapi =
-        ForwardIndexApi::new("./forward_index.bin", "./forward_index_metadata.bin");
-    
-        spimi_invert(&mut fapi).await?;
+    let mut fapi = ForwardIndexApi::new("./forward_index.bin", "./forward_index_metadata.bin");
+
+    spimi_invert(&mut fapi).await?;
 
     Ok(())
 }
-
-
-
