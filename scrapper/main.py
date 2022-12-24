@@ -49,7 +49,11 @@ async def run():
         upload_documents_task = upload_documents(results)
 
     await upload_documents_task
-    await session.aclose()
+    try:
+        await session.aclose()
+    except Exception as e:
+        logger.error('Wtff {}', e)
+
     logger.debug('finished downloading, start build dictionary and bigrams')
 
     await build_bigram_words_dictionary()

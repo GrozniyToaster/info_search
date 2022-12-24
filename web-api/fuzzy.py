@@ -19,7 +19,7 @@ class Dimension:
         return abs(1 - distance / len(words_bigrams | candidates_bigrams))
 
 
-async def get_fuzzy_words(word: str) -> list[str]:
+async def get_fuzzy_words(word: str) -> list[tuple[str, float]]:
     bigrams = get_bigrams_of_word(word)
     word_dimension = Dimension(word)
     fuzzy_words_rating: set[tuple[str, float]] = set()
@@ -27,12 +27,12 @@ async def get_fuzzy_words(word: str) -> list[str]:
         fuzzy_words_rating.update(
             (candidate, word_dimension.distance_to(candidate))
             for candidate in bigram_with_words['words']
-            if word_dimension.distance_to(candidate) >= Config.minimum_distance_for_fuzzy_words
+            if word_dimension.distance_to(candidate) >= Config.minimum_distance_for_fuzzy_words_for_combine_request
         )
 
     return [
-        word
-        for word, _ in reversed(sorted(fuzzy_words_rating, key=lambda row: row[1]))
+        (word, rank)
+        for word, rank in reversed(sorted(fuzzy_words_rating, key=lambda row: row[1]))
     ]
 
 async def is_dictionary_word(word: str) -> bool:

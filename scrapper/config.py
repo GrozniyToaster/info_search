@@ -9,4 +9,4 @@ class Config(BaseConfig):
 
     throttler: AsyncLimiter = AsyncLimiter(max_rate=10, time_period=1)  # 10 tasks/second
 
-    count_documents: int = 160
+    count_documents: int = 65000

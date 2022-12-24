@@ -48,24 +48,27 @@ async def make_request(url: str, session: AsyncClient, throttler: AsyncLimiter) 
 
 
 async def scrape(url: str, session: AsyncClient, throttler: AsyncLimiter) -> Response | None:
-    response = await make_request(url, session, throttler)
-
-    if response.status_code == codes.OK:
-        return response
-
-    if response.status_code == codes.TOO_MANY_REQUESTS or response.status_code == codes.SERVICE_UNAVAILABLE:
-        logger.warning('retry later by {} on url {}', response.status_code, url)
-        await asyncio.sleep(1.5)
+    try:
         response = await make_request(url, session, throttler)
 
-    if codes.is_redirect(response.status_code):
-        logger.warning('redirect on {} {}', url, response.status_code)
-        response = await make_request(response.headers['Location'], session, throttler)
+        if response.status_code == codes.OK:
+            return response
 
-    if response.status_code != codes.OK:
-        logger.error('cannot scrape {} code {}', url, response.status_code)
+        if response.status_code == codes.TOO_MANY_REQUESTS or response.status_code == codes.SERVICE_UNAVAILABLE:
+            logger.warning('retry later by {} on url {}', response.status_code, url)
+            await asyncio.sleep(1.5)
+            response = await make_request(url, session, throttler)
+
+        if codes.is_redirect(response.status_code):
+            logger.warning('redirect on {} {}', url, response.status_code)
+            response = await make_request(response.headers['Location'], session, throttler)
+
+        if response.status_code != codes.OK:
+            logger.error('cannot scrape {} code {}', url, response.status_code)
+            return None
+
+    except Exception as e:
+        logger.error("Wtf happinning {}", e)
         return None
-
-
-
-    return response
+    else:
+        return response

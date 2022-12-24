@@ -18,7 +18,7 @@ def get_lexemes(text: str) -> list[str]:
 
 class EnrichQuery(NamedTuple):
     query: list[str]
-    fuzzy_mapping: dict[str, str]
+    fuzzy_mapping: dict[str, list[tuple[str, float]]]
 
 
 async def process_lexeme(lexeme: str) -> tuple[str, str]:
