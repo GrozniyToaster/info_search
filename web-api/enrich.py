@@ -31,7 +31,7 @@ async def process_lexeme(lexeme: str) -> tuple[str, str]:
 async def get_enrich_query(text: str) -> EnrichQuery:
     lexemes = get_lexemes(text)
     query: list[str] = []
-    fuzzy_mapping: dict[str, str] = {}
+    fuzzy_mapping: dict[str, list[tuple[str, float]]] = {}
     process_lexeme_tasks = (process_lexeme(lexeme) for lexeme in lexemes)
 
     for lexeme, processed_lexeme in await asyncio.gather(*process_lexeme_tasks):

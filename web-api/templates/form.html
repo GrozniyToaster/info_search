@@ -10,6 +10,9 @@
     <input type="submit" value="Искать!">
 </form>
 
+    {% for item in replaces %}
+<p> {{ item['given'] }} -> {{  item['replaced'] }} </p>
+    {% endfor %}
 
     {% for item in results %}
 <p> <a href="{{item}}"> {{ item  }} </a> </p>
