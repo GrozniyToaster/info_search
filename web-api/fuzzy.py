@@ -15,8 +15,7 @@ class Dimension:
             return 0
         words_bigrams = self.words_bigrams
         candidates_bigrams = set(get_bigrams_of_word(candidate))
-        distance = abs(len(words_bigrams) - len(words_bigrams & candidates_bigrams))
-        return abs(1 - distance / len(words_bigrams | candidates_bigrams))
+        return abs(len(words_bigrams & candidates_bigrams) / len(words_bigrams | candidates_bigrams))
 
 
 async def get_fuzzy_words(word: str) -> list[tuple[str, float]]:
