@@ -103,4 +103,10 @@ async def form_post(request: Request, statement: str = Form(default='')):
         for word, corrected in zip(enrich_query.query, queries[0])
         if word != corrected
     ]
+    if len(queries) > 1:
+        rplaces.extend(
+            {'given': word, 'replaced': corrected}
+            for word, corrected in zip(enrich_query.query, queries[1])
+            if word != corrected
+        )
     return templates.TemplateResponse('form.html', context={'request': request, 'results': search_result, 'replaces': rplaces})
