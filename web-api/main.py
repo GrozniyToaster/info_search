@@ -30,7 +30,7 @@ def read_form():
 @app.get("/form")
 def form_post(request: Request):
     result = ""
-    return templates.TemplateResponse('form.html', context={'request': request, 'result': result})
+    return templates.TemplateResponse('form.html', context={'request': request, 'result': result, 'replaces': []})
 
 
 async def get_search_results(queries: list[list[str]]) -> list[str]:
@@ -47,11 +47,11 @@ async def get_search_results(queries: list[list[str]]) -> list[str]:
     async for result in results:
         res_url.append(f'http://neolurk.org{result["path"]}')
     random.shuffle(res_url)
-    return res_url
+    return list(set(res_url))
 
 
 async def get_search_results_ids(query: list[str]) -> list[str]:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=20) as client:
         response = await client.post(
             'http://localhost:8080/search',
             headers={'Content-Type': 'application/x-www-form-urlencoded'},
@@ -79,8 +79,10 @@ def get_transformed_queries(enrich_query: EnrichQuery) -> list[list[str]]:
 
         elif enrich_query.fuzzy_mapping[word][0][1] > Config.minimum_distance_for_fuzzy_words_for_combine_request:
             transformed = deepcopy(queries)
-            for query in transformed:
+            for query in queries:
                 query.append(enrich_query.fuzzy_mapping[word][0][0])
+            for query in transformed:
+                query.append(enrich_query.fuzzy_mapping[word][1][0])
 
             queries.extend(transformed)
 
@@ -93,6 +95,12 @@ async def form_post(request: Request, statement: str = Form(default='')):
     result = EXAMPLE_DOCS if statement else []
     enrich_query = await get_enrich_query(statement)
     queries = get_transformed_queries(enrich_query)
+    logger.debug('{}', queries)
     search_result = await get_search_results(queries)
     logger.debug('Enrich query {}  mapping {}', enrich_query.query, enrich_query.fuzzy_mapping)
-    return templates.TemplateResponse('form.html', context={'request': request, 'results': search_result})
+    rplaces = [
+        {'given': word, 'replaced': corrected}
+        for word, corrected in zip(enrich_query.query, queries[0])
+        if word != corrected
+    ]
+    return templates.TemplateResponse('form.html', context={'request': request, 'results': search_result, 'replaces': rplaces})
